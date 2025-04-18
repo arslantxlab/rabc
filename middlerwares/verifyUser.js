@@ -1,35 +1,30 @@
 const jwt = require('jsonwebtoken');
+const CustomApiError = require('../error/customApiError.js')
 
 
 const verifyUser = async (req, res, next) => {
-    const autherHeader = req.headers.Authorization || req.headers.authorization;
-    if (autherHeader) {
-        const token = autherHeader.split(' ')[1];
-        if (!token) {
-            return res.status(400).json({
-                success: 'false',
-                message: 'token not found'
-            })
-        }
-        try {
+
+    try {
+        const autherHeader = req.headers.Authorization || req.headers.authorization;
+        if (autherHeader) {
+            const token = autherHeader.split(' ')[1];
+            if (!token) throw new CustomApiError(400, 'Authenication Failed: Token Not Found');
+
             const payload = jwt.verify(token, 'asdf');
             req.user = payload;
             console.log(req.user)
             next();
-        } catch (error) {
-            return res.status(403).json({
-                success: 'false',
-                message: 'Invalid Token: ACCESS DENIED!'
-            })
+
+        } else {
+            throw new CustomApiError(400, 'Authenication Failed: Token Not Found');
         }
-    } else {
-        return res.status(400).json({
-            success: 'false',
-            message: 'token not found: Access Denied!'
-        })
+    } catch (error) {
+        next(error);
     }
 }
+
 
 module.exports = {
     verifyUser
 }
+
